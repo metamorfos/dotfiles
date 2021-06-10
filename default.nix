@@ -9,13 +9,15 @@ with import
 let
   comma = pkgs.callPackage ./nixpkgs/comma.nix { };
   setrb = pkgs.callPackage ./nixpkgs/setrb.nix { };
+  ruby = pkgs.ruby_3_0;
+  cpathEnv = builtins.getEnv "CPATH";
+  libraryPathEnv = builtins.getEnv "LIBRARY_PATH";
+  pathEnv = builtins.getEnv "PATH";
+
   bin = pkgs.runCommand "teoljungberg-dotfiles-bin" { } ''
     mkdir $out
     ln -sf ${./bin} $out/bin
   '';
-  cpathEnv = builtins.getEnv "CPATH";
-  libraryPathEnv = builtins.getEnv "LIBRARY_PATH";
-  pathEnv = builtins.getEnv "PATH";
 
   tmux = (let
     tmuxConfig = pkgs.writeText "tmux.conf" ''
@@ -158,7 +160,6 @@ let
     '';
   });
 
-  ruby = pkgs.ruby_3_0;
   paths = [
     bin
     comma
