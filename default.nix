@@ -13,11 +13,6 @@ let
     mkdir $out
     ln -sf ${./bin} $out/bin
   '';
-  env = pkgs.buildEnv {
-    name = "teoljungberg-dotfiles-env";
-    paths = paths;
-    extraOutputsToInstall = [ "bin" "dev" "lib" ];
-  };
   cpathEnv = builtins.getEnv "CPATH";
   libraryPathEnv = builtins.getEnv "LIBRARY_PATH";
   pathEnv = builtins.getEnv "PATH";
@@ -193,6 +188,12 @@ let
     tmux
     vim
   ];
+
+  env = pkgs.buildEnv {
+    name = "teoljungberg-dotfiles-env";
+    paths = paths;
+    extraOutputsToInstall = [ "bin" "dev" "lib" ];
+  };
 in if pkgs.lib.inNixShell then
   pkgs.mkShell { shellHook = "${zsh}${zsh.shellPath}; exit $?"; }
 else
