@@ -37,6 +37,21 @@ let
     '';
   });
 
+  git = (let
+    gitConfig = pkgs.writeTextDir "git/config" ''
+      ${builtins.readFile ./gitconfig}
+    '';
+  in pkgs.symlinkJoin {
+    name = "git";
+    paths = [ pkgs.git ];
+    buildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      bin="$(readlink -v --canonicalize-existing "$out/bin/git")"
+      rm "$out/bin/git"
+      makeWrapper $bin "$out/bin/git" --set "XDG_CONFIG_HOME" "${gitConfig}"
+    '';
+  });
+
   vim = (pkgs.vim_configurable.customize {
     name = "vim";
     vimrcConfig.customRC = builtins.readFile ./vimrc;
@@ -152,11 +167,11 @@ let
   paths = [
     bin
     comma
+    git
     pkgs.autoconf
     pkgs.automake
     pkgs.coreutils-prefixed
     pkgs.fzf
-    pkgs.git
     pkgs.gitAndTools.gh
     pkgs.gitAndTools.hub
     pkgs.gnupg
