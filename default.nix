@@ -35,7 +35,7 @@ let
   });
 
   git = (let
-    gitConfig = pkgs.writeTextDir "git/config" ''
+    gitConfig = pkgs.writeTextDir "gitconfig" ''
       ${builtins.readFile ./gitconfig}
     '';
   in pkgs.symlinkJoin {
