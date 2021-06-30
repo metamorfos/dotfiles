@@ -125,15 +125,10 @@ let
   zsh = (let
     zshenv = pkgs.writeText ".zshenv" ''
       ${builtins.readFile ./zshenv}
-      CPATH=${
-        lib.makeSearchPathOutput "dev" "include" [ pkgs.libxml2 pkgs.libxslt ]
-      }:${cpathEnv}
-      LIBRARY_PATH=${
-        lib.makeLibraryPath [ pkgs.libxml2 pkgs.libxslt ]
-      }:${libraryPathEnv}
-      PATH=$HOME/.gem/ruby/${ruby.version}/bin:${
-        lib.makeBinPath [ env ]
-      }:${pathEnv}
+
+      export CPATH=${env}/include:${cpathEnv}
+      export LIBRARY_PATH=${env}/lib:${libraryPathEnv}
+      PATH=$HOME/.gem/ruby/${ruby.version}/bin:${env}/bin:${pathEnv}
     '';
     zshrc = pkgs.writeText ".zshrc" ''
       ${builtins.readFile ./zshrc}
