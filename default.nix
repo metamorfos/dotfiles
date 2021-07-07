@@ -4,7 +4,8 @@
 
 # https://status.nixos.org
 with import
-  (fetchTarball "https://github.com/NixOS/nixpkgs/archive/21.05.tar.gz") { };
+  (fetchTarball "https://github.com/NixOS/nixpkgs/archive/21.05.tar.gz")
+{ };
 
 let
   comma = pkgs.callPackage ./nixpkgs/comma.nix { };
@@ -19,35 +20,41 @@ let
     ln -sf ${./bin} $out/bin
   '';
 
-  tmux = (let
-    tmuxConfig = pkgs.writeText "tmux.conf" ''
-      ${builtins.readFile ./tmux.conf}
-    '';
-  in pkgs.symlinkJoin {
-    name = "tmux";
-    paths = [ pkgs.tmux ];
-    buildInputs = [ pkgs.makeWrapper ];
-    postBuild = ''
-      bin="$(readlink -v --canonicalize-existing "$out/bin/tmux")"
-      rm "$out/bin/tmux"
-      makeWrapper $bin "$out/bin/tmux" --add-flags "-f ${tmuxConfig}"
-    '';
-  });
+  tmux = (
+    let
+      tmuxConfig = pkgs.writeText "tmux.conf" ''
+        ${builtins.readFile ./tmux.conf}
+      '';
+    in
+    pkgs.symlinkJoin {
+      name = "tmux";
+      paths = [ pkgs.tmux ];
+      buildInputs = [ pkgs.makeWrapper ];
+      postBuild = ''
+        bin="$(readlink -v --canonicalize-existing "$out/bin/tmux")"
+        rm "$out/bin/tmux"
+        makeWrapper $bin "$out/bin/tmux" --add-flags "-f ${tmuxConfig}"
+      '';
+    }
+  );
 
-  git = (let
-    gitConfig = pkgs.writeTextDir "gitconfig" ''
-      ${builtins.readFile ./gitconfig}
-    '';
-  in pkgs.symlinkJoin {
-    name = "git";
-    paths = [ pkgs.git ];
-    buildInputs = [ pkgs.makeWrapper ];
-    postBuild = ''
-      bin="$(readlink -v --canonicalize-existing "$out/bin/git")"
-      rm "$out/bin/git"
-      makeWrapper $bin "$out/bin/git" --set "XDG_CONFIG_HOME" "${gitConfig}"
-    '';
-  });
+  git = (
+    let
+      gitConfig = pkgs.writeTextDir "gitconfig" ''
+        ${builtins.readFile ./gitconfig}
+      '';
+    in
+    pkgs.symlinkJoin {
+      name = "git";
+      paths = [ pkgs.git ];
+      buildInputs = [ pkgs.makeWrapper ];
+      postBuild = ''
+        bin="$(readlink -v --canonicalize-existing "$out/bin/git")"
+        rm "$out/bin/git"
+        makeWrapper $bin "$out/bin/git" --set "XDG_CONFIG_HOME" "${gitConfig}"
+      '';
+    }
+  );
 
   vim = (pkgs.vim_configurable.customize {
     name = "vim";
@@ -122,38 +129,41 @@ let
     };
   });
 
-  zsh = (let
-    zshenv = pkgs.writeText ".zshenv" ''
-      ${builtins.readFile ./zshenv}
+  zsh = (
+    let
+      zshenv = pkgs.writeText ".zshenv" ''
+        ${builtins.readFile ./zshenv}
 
-      export CPATH=${env}/include:${cpathEnv}
-      export LIBRARY_PATH=${env}/lib:${libraryPathEnv}
-      PATH=$HOME/.gem/ruby/${ruby.version}/bin:${env}/bin:${pathEnv}
-    '';
-    zshrc = pkgs.writeText ".zshrc" ''
-      ${builtins.readFile ./zshrc}
-    '';
-    zdotdir = pkgs.buildEnv {
-      name = "teoljungberg-zdotdir";
-      paths = [
-        (pkgs.runCommand "zdotdir" { } ''
-          mkdir -p $out/zdotdir
-          cp ${zshenv} $out/zdotdir/.zshenv
-          cp ${zshrc} $out/zdotdir/.zshrc
-        '')
-      ];
-    };
-  in pkgs.symlinkJoin {
-    name = "zsh";
-    paths = [ pkgs.zsh ];
-    passthru = { shellPath = pkgs.zsh.shellPath; };
-    buildInputs = [ pkgs.makeWrapper ];
-    postBuild = ''
-      bin="$(readlink -v --canonicalize-existing "$out/bin/zsh")"
-      rm "$out/bin/zsh"
-      makeWrapper $bin "$out/bin/zsh" --set "ZDOTDIR" "${zdotdir}/zdotdir"
-    '';
-  });
+        export CPATH=${env}/include:${cpathEnv}
+        export LIBRARY_PATH=${env}/lib:${libraryPathEnv}
+        PATH=$HOME/.gem/ruby/${ruby.version}/bin:${env}/bin:${pathEnv}
+      '';
+      zshrc = pkgs.writeText ".zshrc" ''
+        ${builtins.readFile ./zshrc}
+      '';
+      zdotdir = pkgs.buildEnv {
+        name = "teoljungberg-zdotdir";
+        paths = [
+          (pkgs.runCommand "zdotdir" { } ''
+            mkdir -p $out/zdotdir
+            cp ${zshenv} $out/zdotdir/.zshenv
+            cp ${zshrc} $out/zdotdir/.zshrc
+          '')
+        ];
+      };
+    in
+    pkgs.symlinkJoin {
+      name = "zsh";
+      paths = [ pkgs.zsh ];
+      passthru = { shellPath = pkgs.zsh.shellPath; };
+      buildInputs = [ pkgs.makeWrapper ];
+      postBuild = ''
+        bin="$(readlink -v --canonicalize-existing "$out/bin/zsh")"
+        rm "$out/bin/zsh"
+        makeWrapper $bin "$out/bin/zsh" --set "ZDOTDIR" "${zdotdir}/zdotdir"
+      '';
+    }
+  );
 
   paths = [
     bin
@@ -190,7 +200,8 @@ let
     paths = paths;
     extraOutputsToInstall = [ "bin" "dev" "lib" ];
   };
-in if pkgs.lib.inNixShell then
+in
+if pkgs.lib.inNixShell then
   pkgs.mkShell { shellHook = "${zsh}${zsh.shellPath}; exit $?"; }
 else
   zsh
